@@ -51,11 +51,7 @@ class PreprocessMovielens1M:
         self.ratings, self.users, self.movies = datasets
 
     def _preprocess_ratings(self):
-        self.ratings["Timestamp_Rank"] = self.ratings.groupby(
-            "UserID"
-        ).Timestamp.rank(ascending=False, method="first")
-
-        self.ratings["Rating"] = (self.ratings.Rating > 3).astype(int)
+        self.ratings["Rating"] = (self.ratings.Rating > 3).astype(float)
 
     def _preprocess_users(self):
         self.users["ZipCode"] = pd.factorize(self.users["Zip-code"])[0]
@@ -119,17 +115,33 @@ class PreprocessMovielens1M:
         self._preprocess_ratings()
         self._preprocess_users()
         self._preprocess_movies()
-        self._id_remap()
+        self._movie_id_remap()
+        self._user_id_remap()
         history = self._get_rating_history()
         return (self.ratings, self.users, self.movies, history)
 
     def _get_movie_id_map(self):
         movie_id_map = {}
         for i in range(self.movies.shape[0]):
-            movie_id_map[self.movies.loc[i, "MovieID"]] = i + 1
+            movie_id_map[self.movies.loc[i, "MovieID"]] = i
         return movie_id_map
 
-    def _id_remap(self):
+    def _get_user_id_map(self):
+        user_id_map = {}
+        for i in range(self.users.shape[0]):
+            user_id_map[self.users.loc[i, "UserID"]] = i
+        return user_id_map
+
+    def _user_id_remap(self):
+        user_id_map = self._get_user_id_map()
+        self.users["UserID"] = self.users["UserID"].apply(
+            lambda x: user_id_map[x]
+        )
+        self.ratings["UserID"] = self.ratings["UserID"].apply(
+            lambda x: user_id_map[x]
+        )
+
+    def _movie_id_remap(self):
         movie_id_map = self._get_movie_id_map()
         self.movies["MovieID"] = self.movies["MovieID"].apply(
             lambda x: movie_id_map[x]

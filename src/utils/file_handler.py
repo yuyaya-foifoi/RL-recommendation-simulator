@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import shutil
 
 import torch
 
@@ -10,9 +11,11 @@ class File_Handler:
         self.date = self._get_date()
         self.log_dir = os.path.join("./log", self.date)
         self._mkdirs()
+        self._save_config()
 
     def _get_date(self):
-        str_date = str(datetime.datetime.now()).split(".")[0].replace(" ", "_")
+        now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+        str_date = str(now).split(".")[0].replace(" ", "_")
         str_date = str_date.replace(":", "_").replace("-", "_")
         return str_date
 
@@ -29,6 +32,13 @@ class File_Handler:
         logger.setLevel(logging.INFO)
         return logger
 
+    def _save_config(self):
+        shutil.copy("./configs/config.py", self.log_dir)
+
     def save(self, file, name):
         path = os.path.join(self.log_dir, name)
         torch.save(file, path)
+
+    def load(self, name):
+        path = os.path.join(self.log_dir, name)
+        return torch.load(path)

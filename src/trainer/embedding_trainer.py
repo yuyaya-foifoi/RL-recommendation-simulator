@@ -49,17 +49,19 @@ class Embedding_Trainer:
             logger.info("{} training, epoch {}".format(self.model_type, epoch))
 
             loss, auc = self._train()
-            logger.info("train : ", "loss : ", loss, "auc : ", auc)
+            logger.info("train / loss : {}, auc : {}".format(loss, auc))
 
             loss, auc = self._validation("val")
-            logger.info("val : ", "loss : ", loss, "auc : ", auc)
+            logger.info("val / loss : {}, auc : {}".format(loss, auc))
 
             loss, auc = self._validation("test")
-            logger.info("test : ", "loss : ", loss, "auc : ", auc)
+            logger.info("test / loss : {}, auc : {}".format(loss, auc))
 
             if auc > CFG_DICT[self.model_type]["AUC_THRESH"]:
-                logger.info("AUC is {} and thresh is {} so break").format(
-                    auc, CFG_DICT[self.model_type]["AUC_THRESH"]
+                logger.info(
+                    "AUC is {} and thresh is {} so break".format(
+                        auc, CFG_DICT[self.model_type]["AUC_THRESH"]
+                    )
                 )
                 return self.model
 

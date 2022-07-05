@@ -14,29 +14,37 @@ CFG_DICT = {
         'NUM_SEX' : 2
 
     }, 
-    'USER_SIMULATOR' : {
-        'DIM_EMB' : 50,
+
+    'SIMULATION' : {
         'EPOCH' : 20,
+        'topK' : 5
+
+    },
+
+    'USER_SIMULATOR' : {
+        'DIM_EMB' : 5,
+        'EPOCH' : 10,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
-            'lr': 0.03, 
+            'lr': 0.05, 
             'weight_decay': 1e-4
         },
         'LOSS' : 'bce',
-        'AUC_THRESH' : 0.75,
+        'AUC_THRESH' : 0.74,
         'BS': {
             'train' : 8192,
             'val' : 4096,
             'test' : 4096
-        }
+        },
+        'DROPOUT' : 0.1
     }, 
 
     'INITIAL_RECOMMENDER' : {
-        'DIM_EMB' : 10,
-        'EPOCH' : 10,
+        'DIM_EMB' : 50,
+        'EPOCH' : 1,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
-            'lr': 0.03, 
+            'lr': 0.05, 
             'weight_decay': 1e-4
         },
         'LOSS' : 'bce',
@@ -45,6 +53,25 @@ CFG_DICT = {
             'train' : 8192,
             'val' : 4096,
             'test' : 4096
-        }
+        },
+        'DROPOUT' : 0.1
+    },
+
+    'REPLAY_BUFFER' : {
+        'SIZE' : 1000000,
+        'BS' : 2048,
+    }, 
+
+    'RL' : {
+        'EPOCH' : 50,
+    }, 
+
+
+    'ACTOR_CRITIC' : {
+        'GAMMA' : 0.995,
+        'POLICY_LR' : 1e-3,
+        'VALUE_LR' : 1e-3,
+        'POLICY_HIDDEN_DIM' : 256,
+        'VALUE_HIDDEN_DIM' : 256,
     }
 }

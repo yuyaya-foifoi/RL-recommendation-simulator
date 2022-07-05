@@ -15,7 +15,7 @@ class UserRep(nn.Module):
         super(UserRep, self).__init__()
 
         self.user_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_USERS"] + 1, emb_size * 5, padding_idx=0
+            CFG_DICT["DATASET"]["NUM_USERS"], emb_size * 5, padding_idx=0
         )
         self.gender_embedding = nn.Embedding(
             CFG_DICT["DATASET"]["NUM_SEX"], emb_size
@@ -67,7 +67,7 @@ class ItemRep(nn.Module):
         super(ItemRep, self).__init__()
 
         self.item_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_ITEMS"] + 1, emb_size * 5, padding_idx=0
+            CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size * 5, padding_idx=0
         )
         self.year_embedding = nn.Embedding(
             CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size
@@ -105,7 +105,7 @@ class HistoryRep(nn.Module):
     def __init__(self, emb_size):
         super(HistoryRep, self).__init__()
         self.history_linear = nn.Linear(
-            CFG_DICT["DATASET"]["NUM_ITEMS"] + 1, emb_size * 3
+            CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size * 3
         ).to(torch.double)
         self.rep_dim = emb_size * 3
 
@@ -161,7 +161,7 @@ class Simulator(nn.Module):
             self.dropout,
             nn.ReLU(),
             nn.Linear(emb_size * 1, 1),
-            nn.ReLU(),
+            self.dropout,
         ).to(torch.double)
 
         return linear
