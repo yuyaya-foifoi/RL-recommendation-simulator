@@ -103,10 +103,10 @@ class PreprocessMovielens1M:
         )
 
     def _incriment_movie_view(self, x):
-        preserve = np.zeros((self.movies.MovieID.max() + 1,))
+        tmp = np.zeros((self.movies.MovieID.max() + 1,))
         for MovieID in x.MovieID:
-            preserve[MovieID] += 1
-        return pd.Series(preserve)
+            tmp[MovieID] += 1
+        return pd.Series(tmp)
 
     def _get_rating_history(self):
         return self.ratings.groupby("UserID").apply(self._incriment_movie_view)

@@ -17,13 +17,13 @@ CFG_DICT = {
 
     'SIMULATION' : {
         'EPOCH' : 20,
-        'topK' : 5
+        'topK' : 10
 
     },
 
     'USER_SIMULATOR' : {
         'DIM_EMB' : 5,
-        'EPOCH' : 10,
+        'EPOCH' : 20,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
             'lr': 0.05, 
@@ -40,7 +40,7 @@ CFG_DICT = {
     }, 
 
     'INITIAL_RECOMMENDER' : {
-        'DIM_EMB' : 50,
+        'DIM_EMB' : 5,
         'EPOCH' : 1,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
@@ -59,11 +59,11 @@ CFG_DICT = {
 
     'REPLAY_BUFFER' : {
         'SIZE' : 1000000,
-        'BS' : 2048,
+        'BS' : 4096,
     }, 
 
     'RL' : {
-        'EPOCH' : 50,
+        'EPOCH' : 300,
     }, 
 
 

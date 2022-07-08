@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from configs.config import CFG_DICT
 
@@ -13,8 +12,10 @@ class ValueNet(nn.Module):
         self.l2 = nn.Linear(hidden_dim, hidden_dim)
         self.l3 = nn.Linear(hidden_dim, 1)
 
+        self.relu = nn.ReLU()
+
     def forward(self, x) -> torch.tensor:
-        x = F.relu(self.l1(x))
-        x = F.relu(self.l2(x))
+        x = self.relu(self.l1(x))
+        x = self.relu(self.l2(x))
         x = self.l3(x)
         return x

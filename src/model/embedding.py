@@ -2,6 +2,7 @@ import logging
 
 import torch
 import torch.nn as nn
+from torch.distributions.categorical import Categorical
 
 from configs.config import CFG_DICT
 
@@ -138,8 +139,10 @@ class Simulator(nn.Module):
         users = self.user_rep(user_feats)
         items = self.item_rep(item_feats)
         history = self.history_rep(history_feats)
-        inputs = torch.cat([users, items, history], dim=1)
-        return self.linear(inputs).squeeze()
+        inputs = torch.cat([users, items, history], dim=1).float()
+        out = self.linear(inputs).squeeze()
+
+        return out
 
     def _get_layer(self, emb_size):
 
@@ -162,7 +165,131 @@ class Simulator(nn.Module):
             nn.ReLU(),
             nn.Linear(emb_size * 1, 1),
             self.dropout,
+        )
+
+        return linear
+
+    def _get_model_param(self, model):
+        total_params = sum(p.numel() for p in model.parameters())
+        return total_params
+
+
+class InitialRecommenderUserRep(nn.Module):
+    """User representation layer."""
+
+    def __init__(self, emb_size):
+        super(InitialRecommenderUserRep, self).__init__()
+
+        self.gender_embedding = nn.Embedding(
+            CFG_DICT["DATASET"]["NUM_SEX"], emb_size
+        )
+        self.age_embedding = nn.Embedding(
+            CFG_DICT["DATASET"]["NUM_AGES"], emb_size
+        )
+        self.occup_embedding = nn.Embedding(
+            CFG_DICT["DATASET"]["NUM_OCCUPS"], emb_size
+        )
+        self.zip_embedding = nn.Embedding(
+            CFG_DICT["DATASET"]["NUM_ZIPS"], emb_size
+        )
+        self.rep_dim = emb_size * 4
+
+    def forward(self, data):
+
+        sex_idx, age_idx, occupation_idx, zip_idx = self._get_data(data)
+
+        out = torch.cat(
+            [
+                self.gender_embedding(sex_idx),
+                self.age_embedding(age_idx),
+                self.occup_embedding(occupation_idx),
+                self.zip_embedding(zip_idx),
+            ],
+            dim=1,
+        )
+
+        return out
+
+    def _get_data(self, data):
+        sex_idx = data[:, 0, 1].to(torch.long)
+        age_idx = data[:, 0, 2].to(torch.long)
+        occupation_idx = data[:, 0, 3].to(torch.long)
+        zip_idx = data[:, 0, 4].to(torch.long)
+
+        return sex_idx, age_idx, occupation_idx, zip_idx
+
+
+class InitialRecommenderItemRep(nn.Module):
+    """Item representation layer."""
+
+    def __init__(self, emb_size):
+        super(InitialRecommenderItemRep, self).__init__()
+
+        self.year_embedding = nn.Embedding(
+            CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size
+        )
+        self.genre_linear = nn.Linear(
+            CFG_DICT["DATASET"]["NUM_GENRES"], emb_size
         ).to(torch.double)
+        self.rep_dim = emb_size * 2
+
+    def forward(self, data):
+
+        year_idx, genres = self._get_data(data)
+
+        out = torch.cat(
+            [
+                self.year_embedding(year_idx),
+                self.genre_linear(genres),
+            ],
+            dim=1,
+        )
+
+        return out
+
+    def _get_data(self, data):
+        year_idx = data[:, 0, 1].to(torch.long)
+        genres = data[:, 0, 2:].to(torch.double)
+        return year_idx, genres
+
+
+class InitialRecommender(nn.Module):
+    def __init__(self, emb_size):
+        super(InitialRecommender, self).__init__()
+        self.user_rep = InitialRecommenderUserRep(emb_size)
+        self.item_rep = InitialRecommenderItemRep(emb_size)
+
+        self.dropout = nn.Dropout(0.1)
+        self.linear = self._get_layer(emb_size)
+        logger.info("Embedding size : {}".format(emb_size))
+        logger.info(
+            "Model Param : {}".format(self._get_model_param(self.linear))
+        )
+
+    def forward(self, user_feats, item_feats, history_feats):
+        users = self.user_rep(user_feats)
+        items = self.item_rep(item_feats)
+        inputs = torch.cat([users, items], dim=1).float()
+        out = self.linear(inputs).squeeze()
+        return out
+
+    def _get_layer(self, emb_size):
+
+        linear = nn.Sequential(
+            nn.Linear(
+                self.user_rep.rep_dim + self.item_rep.rep_dim,
+                emb_size * 10,
+            ),
+            nn.ReLU(),
+            nn.Linear(emb_size * 10, emb_size * 5),
+            self.dropout,
+            nn.ReLU(),
+            nn.Linear(emb_size * 5, emb_size * 1),
+            self.dropout,
+            nn.ReLU(),
+            nn.Linear(emb_size * 1, 1),
+            self.dropout,
+        )
 
         return linear
 

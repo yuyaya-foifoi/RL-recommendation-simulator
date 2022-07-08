@@ -2,8 +2,8 @@ import numpy as np
 import torch
 
 
-def rl_trainer(recommend_handler, agent, device, bs):
-    for step in np.arange(bs):
+def rl_trainer(recommend_handler, agent, device, bs, epoch):
+    for step in np.arange(epoch):
         (
             state,
             action,

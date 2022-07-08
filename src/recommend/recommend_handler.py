@@ -107,13 +107,12 @@ class RecommendHandler:
 
             self._log_history(user_idx, single_next_history_feat)
 
-    def _recommend(self, topK: int = 5):
+    def _recommend(self, topK: int = CFG_DICT["SIMULATION"]["topK"]):
         for user_idx in np.random.choice(
             self.ratings.UserID.unique(),
-            size=int(len(self.ratings.UserID.unique()) / 5),
+            size=int(len(self.ratings.UserID.unique()) / topK),
             replace=False,
         ):
-            # user_id は 1始まり, user行列はindex0始まり
             user_idx = int(user_idx)
             single_user_feat, repeated_user_feat = self._get_user_feat(
                 user_idx
@@ -142,7 +141,7 @@ class RecommendHandler:
                     [single_user_feat, single_next_history_feat]
                 )
                 reward = int(gt[action] > 0.5)
-                prob = probs[action].item()
+                prob = probs.squeeze()[action].item()
 
                 self._log_rating(user_idx, action, reward, prob)
                 self.buffer.add(state, action, reward, next_state, prob)
