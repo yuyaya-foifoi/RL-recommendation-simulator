@@ -4,6 +4,9 @@ import torch
 import torch.nn as nn
 from torch.distributions.categorical import Categorical
 
+# from src.activation_func.gumbel_softmax import gumbel_softmax
+from torch.nn.functional import gumbel_softmax
+
 from configs.config import CFG_DICT
 
 logger = logging.getLogger("src")
@@ -18,25 +21,15 @@ class UserRep(nn.Module):
         self.user_embedding = nn.Embedding(
             CFG_DICT["DATASET"]["NUM_USERS"], emb_size * 5, padding_idx=0
         )
-        self.gender_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_SEX"], emb_size
-        )
-        self.age_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_AGES"], emb_size
-        )
-        self.occup_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_OCCUPS"], emb_size
-        )
-        self.zip_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_ZIPS"], emb_size
-        )
+        self.gender_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_SEX"], emb_size)
+        self.age_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_AGES"], emb_size)
+        self.occup_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_OCCUPS"], emb_size)
+        self.zip_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_ZIPS"], emb_size)
         self.rep_dim = emb_size * 5 + emb_size * 4
 
     def forward(self, data):
 
-        user_idx, sex_idx, age_idx, occupation_idx, zip_idx = self._get_data(
-            data
-        )
+        user_idx, sex_idx, age_idx, occupation_idx, zip_idx = self._get_data(data)
 
         out = torch.cat(
             [
@@ -70,12 +63,10 @@ class ItemRep(nn.Module):
         self.item_embedding = nn.Embedding(
             CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size * 5, padding_idx=0
         )
-        self.year_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size
+        self.year_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size)
+        self.genre_linear = nn.Linear(CFG_DICT["DATASET"]["NUM_GENRES"], emb_size).to(
+            torch.double
         )
-        self.genre_linear = nn.Linear(
-            CFG_DICT["DATASET"]["NUM_GENRES"], emb_size
-        ).to(torch.double)
         self.rep_dim = emb_size * 5 + emb_size * 2
 
     def forward(self, data):
@@ -131,18 +122,17 @@ class Simulator(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.linear = self._get_layer(emb_size)
         logger.info("Embedding size : {}".format(emb_size))
-        logger.info(
-            "Model Param : {}".format(self._get_model_param(self.linear))
-        )
+        logger.info("Model Param : {}".format(self._get_model_param(self.linear)))
 
     def forward(self, user_feats, item_feats, history_feats):
         users = self.user_rep(user_feats)
         items = self.item_rep(item_feats)
         history = self.history_rep(history_feats)
         inputs = torch.cat([users, items, history], dim=1).float()
-        out = self.linear(inputs).squeeze()
+        out = self.linear(inputs)
+        dist = gumbel_softmax(out, CFG_DICT["USER_SIMULATOR"]["GUMBEL"]["tau"])
 
-        return out
+        return dist
 
     def _get_layer(self, emb_size):
 
@@ -163,7 +153,7 @@ class Simulator(nn.Module):
             nn.Linear(emb_size * 5, emb_size * 1),
             self.dropout,
             nn.ReLU(),
-            nn.Linear(emb_size * 1, 1),
+            nn.Linear(emb_size * 1, 2),
             self.dropout,
         )
 
@@ -180,18 +170,10 @@ class InitialRecommenderUserRep(nn.Module):
     def __init__(self, emb_size):
         super(InitialRecommenderUserRep, self).__init__()
 
-        self.gender_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_SEX"], emb_size
-        )
-        self.age_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_AGES"], emb_size
-        )
-        self.occup_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_OCCUPS"], emb_size
-        )
-        self.zip_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_ZIPS"], emb_size
-        )
+        self.gender_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_SEX"], emb_size)
+        self.age_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_AGES"], emb_size)
+        self.occup_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_OCCUPS"], emb_size)
+        self.zip_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_ZIPS"], emb_size)
         self.rep_dim = emb_size * 4
 
     def forward(self, data):
@@ -225,12 +207,10 @@ class InitialRecommenderItemRep(nn.Module):
     def __init__(self, emb_size):
         super(InitialRecommenderItemRep, self).__init__()
 
-        self.year_embedding = nn.Embedding(
-            CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size
+        self.year_embedding = nn.Embedding(CFG_DICT["DATASET"]["NUM_ITEMS"], emb_size)
+        self.genre_linear = nn.Linear(CFG_DICT["DATASET"]["NUM_GENRES"], emb_size).to(
+            torch.double
         )
-        self.genre_linear = nn.Linear(
-            CFG_DICT["DATASET"]["NUM_GENRES"], emb_size
-        ).to(torch.double)
         self.rep_dim = emb_size * 2
 
     def forward(self, data):
@@ -262,16 +242,15 @@ class InitialRecommender(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.linear = self._get_layer(emb_size)
         logger.info("Embedding size : {}".format(emb_size))
-        logger.info(
-            "Model Param : {}".format(self._get_model_param(self.linear))
-        )
+        logger.info("Model Param : {}".format(self._get_model_param(self.linear)))
 
     def forward(self, user_feats, item_feats, history_feats):
         users = self.user_rep(user_feats)
         items = self.item_rep(item_feats)
         inputs = torch.cat([users, items], dim=1).float()
-        out = self.linear(inputs).squeeze()
-        return out
+        out = self.linear(inputs)
+        dist = gumbel_softmax(out, CFG_DICT["INITIAL_RECOMMENDER"]["GUMBEL"]["tau"])
+        return dist
 
     def _get_layer(self, emb_size):
 
@@ -287,7 +266,7 @@ class InitialRecommender(nn.Module):
             nn.Linear(emb_size * 5, emb_size * 1),
             self.dropout,
             nn.ReLU(),
-            nn.Linear(emb_size * 1, 1),
+            nn.Linear(emb_size * 1, 2),
             self.dropout,
         )
 

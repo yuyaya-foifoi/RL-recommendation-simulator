@@ -23,20 +23,23 @@ CFG_DICT = {
 
     'USER_SIMULATOR' : {
         'DIM_EMB' : 5,
-        'EPOCH' : 20,
+        'EPOCH' : 5,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
             'lr': 0.05, 
             'weight_decay': 1e-4
         },
-        'LOSS' : 'bce',
+        'LOSS' : 'cc',
         'AUC_THRESH' : 0.74,
         'BS': {
             'train' : 8192,
             'val' : 4096,
             'test' : 4096
         },
-        'DROPOUT' : 0.1
+        'DROPOUT' : 0.1,
+        'GUMBEL' : {
+            'tau' : 0.5
+        }
     }, 
 
     'INITIAL_RECOMMENDER' : {
@@ -47,14 +50,17 @@ CFG_DICT = {
             'lr': 0.05, 
             'weight_decay': 1e-4
         },
-        'LOSS' : 'bce',
+        'LOSS' : 'cc',
         'AUC_THRESH' : 0.70,
         'BS': {
             'train' : 8192,
             'val' : 4096,
             'test' : 4096
         },
-        'DROPOUT' : 0.1
+        'DROPOUT' : 0.1,
+        'GUMBEL' : {
+            'tau' : 0.5
+        }
     },
 
     'REPLAY_BUFFER' : {
