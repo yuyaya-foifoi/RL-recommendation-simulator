@@ -24,7 +24,7 @@ class MovieLensDataset(Dataset):
         history_feat = self.history[
             self.history.index == series.UserID
         ].to_numpy()
-        score = np.array(series.Rating)
+        score = np.array(series.Rating, dtype=int)
 
         return (
             torch.from_numpy(user_feat),

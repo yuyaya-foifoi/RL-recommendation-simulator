@@ -82,7 +82,7 @@ class Embedding_Trainer:
                 history_feat.to(self.device),
             )
 
-            auc.add(predict.detach(), score.to(self.device))
+            auc.add(torch.argmax(predict, 1), score.to(self.device))
             loss = self.loss_func(predict, score.to(self.device))
 
             self.optimizer.zero_grad()
@@ -116,7 +116,7 @@ class Embedding_Trainer:
                     history_feat.to(self.device),
                 )
 
-                auc.add(predict.detach(), score.to(self.device))
+                auc.add(torch.argmax(predict, 1), score.to(self.device))
                 loss = self.loss_func(predict, score.to(self.device))
 
                 loss_all += loss.item()

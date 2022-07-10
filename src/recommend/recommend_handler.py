@@ -99,10 +99,11 @@ class RecommendHandler:
                     [single_user_feat, single_next_history_feat]
                 )
                 action = topK_idx
-                reward = int(gt[topK_idx] > 0.5)
+                reward = int(gt[action] > 0.5)
+
                 prob = pred[topK_idx]
 
-                self._log_rating(user_idx, topK_idx, reward, prob)
+                self._log_rating(user_idx, action, reward, prob)
                 self.buffer.add(state, action, reward, next_state, prob)
 
             self._log_history(user_idx, single_next_history_feat)
@@ -200,7 +201,7 @@ class RecommendHandler:
     ):
         self.recommender.eval()
         pred = (
-            self.sigmoid(
+            (
                 self.recommender(
                     repeated_user_feat, movie_feat, repeated_history_feat
                 )
@@ -209,14 +210,14 @@ class RecommendHandler:
             .cpu()
             .numpy()
         )
-        return pred
+        return np.argmax(pred, axis=1)
 
     def _predict_gt(
         self, repeated_user_feat, movie_feat, repeated_history_feat
     ):
         self.user_simulator.eval()
         gt = (
-            self.sigmoid(
+            (
                 self.user_simulator(
                     repeated_user_feat, movie_feat, repeated_history_feat
                 )
@@ -225,7 +226,7 @@ class RecommendHandler:
             .cpu()
             .numpy()
         )
-        return gt
+        return np.argmax(gt, axis=1)
 
     def _predict_prob_action(self, single_user_feat, size: int):
         probs, action = self.recommender.get_action(
