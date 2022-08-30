@@ -16,14 +16,14 @@ CFG_DICT = {
     }, 
 
     'SIMULATION' : {
-        'EPOCH' : 20,
+        'EPOCH' : 10,
         'topK' : 10
 
     },
 
     'USER_SIMULATOR' : {
         'DIM_EMB' : 5,
-        'EPOCH' : 5,
+        'EPOCH' : 20,
         'OPTIMIZER' : {
             'name' : 'adagrad', 
             'lr': 0.05, 
@@ -39,7 +39,8 @@ CFG_DICT = {
         'DROPOUT' : 0.1,
         'GUMBEL' : {
             'tau' : 0.5
-        }
+        },
+        'DATA_SPLIT': 'random'
     }, 
 
     'INITIAL_RECOMMENDER' : {
@@ -69,12 +70,34 @@ CFG_DICT = {
     }, 
 
     'RL' : {
-        'EPOCH' : 300,
+        'EPOCH' : 100,
     }, 
 
 
     'ACTOR_CRITIC' : {
+        'LOSS': 'smoothL1',
         'GAMMA' : 0.995,
+        'POLICY_LR' : 1e-3,
+        'VALUE_LR' : 1e-3,
+        'POLICY_HIDDEN_DIM' : 256,
+        'VALUE_HIDDEN_DIM' : 256,
+    },
+
+    'SOFT_ACTOR_CRITIC' : {
+        'LOSS': 'smoothL1',
+        'ALPHA' : 0.02,
+        'TAU' : 0.05,
+        'GAMMA' : 0.99,
+        'POLICY_LR' : 1e-3,
+        'VALUE_LR' : 1e-3,
+        'POLICY_HIDDEN_DIM' : 256,
+        'VALUE_HIDDEN_DIM' : 256,
+    },
+
+    'DDPG' : {
+        'LOSS': 'smoothL1',
+        'TAU' : 0.05,
+        'GAMMA' : 0.99,
         'POLICY_LR' : 1e-3,
         'VALUE_LR' : 1e-3,
         'POLICY_HIDDEN_DIM' : 256,

@@ -7,7 +7,7 @@ from configs.config import CFG_DICT
 from src.utils.loss import get_loss_function
 from src.utils.optimizer import get_optimizer
 
-logger = logging.getLogger("src")
+logger = logging.getLogger(__name__)
 
 
 class Embedding_Trainer:

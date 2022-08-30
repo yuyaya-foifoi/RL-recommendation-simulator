@@ -20,26 +20,32 @@ class DiversityOrientedMetrics:
             + ratings.MovieID.unique().tolist()
         )
 
-        self.MovieID2UserID = (
+        self.MovieID2UserIDs = (
             self.ratings.groupby("MovieID")
             .apply(lambda x: x.UserID.to_list())
             .to_dict()
         )
         self.UserID2rating_MovieIDs = (
-            self.prediction.groupby("UserID")
+            self.ratings.groupby("UserID")
             .apply(lambda x: x.MovieID.to_list())
             .to_dict()
         )
         self.UserID2prediction_MovieIDs = (
             self.prediction.groupby("UserID")
-            .apply(lambda x: x.UserID.to_list())
+            .apply(lambda x: x.MovieID.to_list())
             .to_dict()
         )
 
+    def _get_movieid_list_from_userid(self, userid2movieid, UserID):
+        if UserID in userid2movieid.keys():
+            return list(userid2movieid[UserID])
+        else:
+            return []
+
     def _get_userid_list_from_movieid(self, MovieID):
-        try:
-            return list(set(self.MovieID2UserID[MovieID]))
-        except:
+        if MovieID in self.MovieID2UserIDs.keys():
+            return list(self.MovieID2UserIDs[MovieID])
+        else:
             return []
 
     def _prefs(self, MovieID: int) -> int:
@@ -49,13 +55,19 @@ class DiversityOrientedMetrics:
         user_id_set1 = self._get_userid_list_from_movieid(MovieID1)
         user_id_set2 = self._get_userid_list_from_movieid(MovieID2)
 
-        counter = collections.Counter(user_id_set1 + user_id_set2)
+        if user_id_set1 == user_id_set2:
+            counter = collections.Counter(user_id_set1)
+        else:
+            counter = collections.Counter(user_id_set1 + user_id_set2)
+
         return np.sum(np.array(list(counter.values())) == 2)
 
     def _diversity_user(self, user_id):
         diversity_score = 0.0
 
-        rec_ID_per_user = self.UserID2prediction_MovieIDs[user_id]
+        rec_ID_per_user = self._get_movieid_list_from_userid(
+            self.UserID2prediction_MovieIDs, user_id
+        )
 
         for i, j in list(itertools.combinations(rec_ID_per_user, 2)):
             pref_both = self._prefs_both(i, j)
@@ -78,8 +90,12 @@ class DiversityOrientedMetrics:
     def _serendipity_user(self, user_id):
         serendipity_score = 0.0
 
-        rec_ID_per_user = self.UserID2prediction_MovieIDs[user_id]
-        con_ID_per_user = self.UserID2rating_MovieIDs[user_id]
+        rec_ID_per_user = self._get_movieid_list_from_userid(
+            self.UserID2prediction_MovieIDs, user_id
+        )
+        con_ID_per_user = self._get_movieid_list_from_userid(
+            self.UserID2rating_MovieIDs, user_id
+        )
 
         for rec_item, con_item in list(
             itertools.product(rec_ID_per_user, con_ID_per_user)
@@ -107,9 +123,11 @@ class DiversityOrientedMetrics:
     def _novelty_user(self, user_id):
         novelty_score = 0.0
 
-        rec_fkus_per_user = self.UserID2prediction_MovieIDs[user_id]
+        rec_ID_per_user = self._get_movieid_list_from_userid(
+            self.UserID2prediction_MovieIDs, user_id
+        )
 
-        for rec_fku in rec_fkus_per_user:
+        for rec_fku in rec_ID_per_user:
             prefs = self._prefs(rec_fku)
             if prefs != 0:
                 novelty_score += (
@@ -124,6 +142,4 @@ class DiversityOrientedMetrics:
         return novelty_score / len(self.unique_user_ids)
 
     def uniqueness_score(self) -> float:
-        return (len(self.prediction.MovieID.unique()) / self.topK) / len(
-            self.unique_user_ids
-        )
+        return len(self.prediction.MovieID.unique()) / self.topK

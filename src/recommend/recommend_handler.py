@@ -134,7 +134,7 @@ class RecommendHandler:
             single_next_history_feat = single_history_feat.copy()
 
             for action in actions:
-                action = action.item()
+                action = int(action.item())
                 single_next_history_feat[action] += 1
 
                 state = np.hstack([single_user_feat, single_history_feat])
@@ -142,7 +142,10 @@ class RecommendHandler:
                     [single_user_feat, single_next_history_feat]
                 )
                 reward = int(gt[action] > 0.5)
-                prob = probs.squeeze()[action].item()
+                if probs == None:
+                    prob = 0.0
+                else:
+                    prob = probs.squeeze()[action].item()
 
                 self._log_rating(user_idx, action, reward, prob)
                 self.buffer.add(state, action, reward, next_state, prob)

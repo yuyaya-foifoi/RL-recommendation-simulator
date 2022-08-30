@@ -6,6 +6,7 @@ from torch.distributions.categorical import Categorical
 from configs.config import CFG_DICT
 from src.model.policy import PolicyNet
 from src.model.value import ValueNet
+from src.utils.loss import get_loss_function
 
 
 class ActorCriticAgent:
@@ -24,9 +25,7 @@ class ActorCriticAgent:
         self.pl_net = PolicyNet(self.state_size, self.action_size).to(
             self.device
         )
-        self.v_net = ValueNet(self.state_size, self.action_size).to(
-            self.device
-        )
+        self.v_net = ValueNet(self.state_size).to(self.device)
 
         self.optimizer_pl = torch.optim.Adam(
             self.pl_net.parameters(), lr=self.lr_pl_net
@@ -35,7 +34,9 @@ class ActorCriticAgent:
             self.v_net.parameters(), lr=self.lr_v_net
         )
 
-        self.loss_function = nn.SmoothL1Loss()
+        self.loss_function = get_loss_function(
+            CFG_DICT["ACTOR_CRITIC"]["LOSS"]
+        )
 
     def get_action(self, state, size):
         probs = self.pl_net(state)
@@ -57,14 +58,14 @@ class ActorCriticAgent:
 
         rho = prob_target / prob_behavior
 
-        td_target = rho * (reward + self.gamma * self.v_net(next_state))
+        td_target = reward + self.gamma * self.v_net(next_state)
         td_target.detach()
-        v = rho * self.v_net(state)
+        v = self.v_net(state)
 
         loss_v = self.loss_function(v, td_target)
 
         delta = td_target - v
-        loss_pl = (-torch.log(prob_behavior) * delta).mean()
+        loss_pl = (-torch.log(prob_behavior) * delta * rho).mean()
 
         loss_v.backward(retain_graph=True)
         loss_pl.backward(retain_graph=True)

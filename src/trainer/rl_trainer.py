@@ -23,3 +23,42 @@ def rl_trainer(recommend_handler, agent, device, bs, epoch):
         )
 
     return (agent, recommend_handler)
+
+
+def SAC_trainer(recommend_handler, agent, device, bs, epoch):
+    for step in np.arange(epoch):
+        (
+            state,
+            action,
+            reward,
+            next_state,
+            _,
+        ) = recommend_handler.buffer.get_batch(bs)
+
+        agent.update(
+            state.to(device),
+            reward.to(device),
+            next_state.to(device),
+        )
+
+    return (agent, recommend_handler)
+
+
+def DDPG_trainer(recommend_handler, agent, device, bs, epoch):
+    for step in np.arange(epoch):
+        (
+            state,
+            action,
+            reward,
+            next_state,
+            _,
+        ) = recommend_handler.buffer.get_batch(bs)
+
+        agent.update(
+            state.to(device),
+            action.to(device),
+            reward.to(device),
+            next_state.to(device),
+        )
+
+    return (agent, recommend_handler)
