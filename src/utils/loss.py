@@ -3,6 +3,7 @@ import torch.nn as nn
 key2loss = {
     "bce": nn.BCEWithLogitsLoss(),
     "cc": nn.CrossEntropyLoss(),
+    "smoothL1": nn.SmoothL1Loss(),
 }
 
 

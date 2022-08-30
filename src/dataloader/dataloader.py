@@ -4,7 +4,7 @@ from configs.config import CFG_DICT
 from src.dataloader.movielens import MovieLensDataset
 
 
-def get_MovieLensDataloaders(model_type: str, processed_data):
+def get_MovieLensDataloaders(model_type: str, processed_data, data_split: str):
 
     train_loader = DataLoader(
         MovieLensDataset(processed_data, data_type="train"),
