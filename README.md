@@ -17,4 +17,5 @@ In particular, we compared models based on deep reinforcement learning, and exam
 ![metrics](https://user-images.githubusercontent.com/40622501/187360348-57c694a1-252a-4743-bf24-3e5a3c1b0328.png)
 
 ## references
-[1] Z. Sun et al., “Are we evaluating rigorously? Benchmarking recommendation for reproducible evaluation and fair comparison,” presented at the RecSys ’20: Fourteenth ACM Conference on Recommender Systems, Virtual Event Brazil, Sep. 2020. doi: 10.1145/3383313.3412489. [2] M. Chen et al., “Values of User Exploration in Recommender Systems,” in Fifteenth ACM Conference on Recommender Systems, New York, NY, USA: Association for Computing Machinery, 2021, pp. 85‒95.
+- [1] Z. Sun et al., “Are we evaluating rigorously? Benchmarking recommendation for reproducible evaluation and fair comparison,” presented at the RecSys ’20: Fourteenth ACM Conference on Recommender Systems, Virtual Event Brazil, Sep. 2020. doi: 10.1145/3383313.3412489. 
+- [2] M. Chen et al., “Values of User Exploration in Recommender Systems,” in Fifteenth ACM Conference on Recommender Systems, New York, NY, USA: Association for Computing Machinery, 2021, pp. 85‒95.
